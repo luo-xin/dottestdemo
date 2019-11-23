@@ -16,6 +16,6 @@ public class DotService {
     public boolean queryEvent(Dot dot) throws Exception {
 //        return hiveDao.queryEvent(dot.getDt(),);
 
-
+        return false;
     }
 }
