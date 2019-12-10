@@ -1,64 +1,93 @@
 package com.dottestdemo.dao;
 
-import com.dottestdemo.bean.Dot;
-import org.apache.parquet.Strings;
-import org.springframework.stereotype.Component;
-import org.springframework.util.StringUtils;
 
+import com.dottestdemo.bean.Dot;
+import com.dottestdemo.service.DotService;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.stereotype.Component;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.servlet.ModelAndView;
+import org.springframework.web.servlet.view.json.MappingJackson2JsonView;
+
+import javax.annotation.Resource;
+import javax.sql.DataSource;
 import java.sql.Connection;
-import java.sql.DriverManager;
 import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.sql.Statement;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
 
 @Component
 public class HiveDao {
 
-    private Connection conn;
+    @Resource
+    @Qualifier("hiveDruidDataSource")
+    DataSource druidDataSource;
 
-    public boolean queryEvent(String dt, String[] events) throws Exception {
-        System.out.println("-----conn ---: " + conn);
-        if (null == conn) {
-            conn = DriverManager.getConnection(
-                    "jdbc:hive2://10.50.255.141:10000/default", "luoxin01", "luoxin01@123");
-        }
 
-//        String querySQL = "select devicename,event from fangdd_data.user_trace where dt='" + dt + "' and event in " +
-//                "('选房大师_地图页_页面进入','选房大师_地图页_开始吧')";
+    // 查询打点数据
+    public List<Map<String, Object>> queryEvent(String dt, String[] deviceNames, String[] events) throws SQLException {
+        List<Map<String, Object>> list = new ArrayList<>();
+        Connection conn = druidDataSource.getConnection();
+//        '选房大师_地图页_页面进入','选房大师_地图页_开始吧'
 
-        String eventsStr = "";
+        String eventStr = "";
         for (int i = 0; i < events.length; i++) {
-            eventsStr = eventsStr + ",'" + events[i] + "'";
+            eventStr = ",'" + events[i] + "'" + eventStr;
         }
-        eventsStr = eventsStr.substring(1, eventsStr.length());
+        if (!"".equals(eventStr)) {
+            eventStr = eventStr.substring(1, eventStr.length());
+        }
 
-        StringBuilder sql = new StringBuilder();
-//        sql.append("select devicename, event from fangdd_data.user_trace");
-//        sql.append("select count(0) from fangdd_data.user_trace");
-        sql.append("select devicename, event, type from fangdd_data.user_trace");
-        sql.append(" where dt = " + dt);
-        sql.append(" and event in (" + eventsStr + ")");
+        String deviceNameStr = "";
+        for (int i = 0; i < deviceNames.length; i++) {
+            deviceNameStr = ",'" + deviceNames[i] + "'" + deviceNameStr;
+        }
+        if (!"".equals(deviceNameStr)) {
+            deviceNameStr = deviceNameStr.substring(1, deviceNameStr.length());
+        }
 
-        System.out.println(sql);
+        StringBuilder sb = new StringBuilder();
+        sb.append("select * from fangdd_data.user_trace where");
+        if (!"".equals(dt)) {
+            sb.append(" dt = '" + dt + "'");
+        }
+        if (!"".equals(eventStr)) {
+            sb.append(" and event in (" + eventStr + ")");
+        }
+        if (!"".equals(deviceNameStr)) {
+            sb.append(" and devicename in (" + deviceNameStr + ")");
+        }
+
+        System.out.println(sb.toString());
 
         Statement stmt = conn.createStatement();
-        ResultSet res = stmt.executeQuery(sql.toString()); // 执行查询语句
+        ResultSet res = stmt.executeQuery(sb.toString());
 
-        int resultCount = 0;
+        int columnCount = res.getMetaData().getColumnCount();
         while (res.next()) {
-            resultCount = res.getInt(1);
-            System.out.println("统计结果 " + res.getInt(1));
-//            System.out.println("查询结果" + res.getString(1) + "  –>  value:" + res.getString(2));
+            Map<String, Object> map = new HashMap<>();
+            for (int i = 1; i <= columnCount; i++) {
+                String mKey = res.getMetaData().getColumnName(i);
+                mKey = mKey.substring("user_trace.".length(), mKey.length());
+
+                map.put(mKey, res.getObject(i));
+//                System.out.printf("shujuku -- %s %s \n", mKey, res.getObject(i));
+            }
+            list.add(map);
         }
 
-        stmt.close();
         res.close();
+        stmt.close();
 
-        if (resultCount > 0) {
-            return true;
-        }
-
-        return false;
+        return list;
     }
-
-
 }

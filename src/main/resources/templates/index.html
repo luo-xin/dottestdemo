@@ -6,29 +6,51 @@
     <link rel='stylesheet' href='http://maxcdn.bootstrapcdn.com/bootstrap/3.3.4/css/bootstrap.min.css'>
     <script src="http://ajax.aspnetcdn.com/ajax/jQuery/jquery-1.8.0.js"></script>
 </head>
-<body class="form-bg">
-<div class="container my-form">
-    <div class="row">
-        <div class="col-md-offset-3 col-md-6">
-            <form class="form-horizontal" th:action="@{/check}" th:object="${event}" method="post">
-                <span class="heading">打点校验</span>
-                <div class="form-group">
-                    <input type="text" name="event" class="form-control" id="inputEmail3" placeholder="事件">
-                    <i class="fa fa-user"></i>
-                </div>
-                <div class="form-group help">
-                    <input type="text" name="type" class="form-control" id="inputPassword3" placeholder="类型">
-                    <i class="fa fa-lock"></i>
-                </div>
-                <div class="form-group">
-                    <button type="submit" class="btn btn-default">查询</button>
-                </div>
-            </form>
-        </div>
-    </div>
-</div>
-</body>
 <style>
+    .file {
+        position: relative;
+        display: inline-block;
+        background: #D0EEFF;
+        border: 1px solid #99D3F5;
+        border-radius: 4px;
+        padding: 4px 12px;
+        overflow: hidden;
+        color: #1E88C7;
+        text-decoration: none;
+        text-indent: 0;
+        line-height: 20px;
+    }
+
+    .file input {
+        /*position: absolute;*/
+        /*font-size: 100px;*/
+        /*right: 0;*/
+        /*top: 0;*/
+        /*opacity: 0;*/
+    }
+
+    .file:hover {
+        background: #AADFFD;
+        border-color: #78C3F3;
+        color: #004974;
+        text-decoration: none;
+    }
+
+    .input-container {
+        display: flex;
+        justify-content: center;
+    }
+
+    .filetext {
+        min-width: 300px;
+        display: block;
+        outline: none;
+    }
+
+    .change_btn {
+        display: block;
+    }
+
     .my-form {
         margin-top: 100px;
     }
@@ -156,6 +178,7 @@
 
     .form-horizontal .btn {
         float: right;
+        outline: none;
         font-size: 14px;
         color: #fff;
         background: #00b4ef;
@@ -180,9 +203,45 @@
         }
     }
 </style>
+<body class="form-bg">
+    <div class="container my-form">
+        <div class="row">
+            <div class="col-md-offset-3 col-md-6">
+                <form class="form-horizontal" th:action="@{/dot/check}" th:object="${event}" method="post" enctype="multipart/form-data">
+                    <span class="heading">打点校验</span>
+                    <div class="form-group">
+                        <!--<a href="javascript:void(0);" class="file">-->
+                            <!--<input type="file" name="file"/>-->
+                        <!--</a>-->
+
+                        <div class="input-container">
+                            <input type="file" name="file" class="filess" style="opacity: 0; display: none"/>
+                            <input type="text" class="filetext" />
+                            <button class="change_btn">选择文件</button>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <button type="submit" class="btn btn-default">查询</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</body>
 
 <script>
     $(document).ready(function () {
+
+        $(".change_btn").click(function (e) {
+            e.preventDefault();
+            e.stopPropagation();
+            $(".filess").click();
+        });
+
+        $('.filess').change(function(){
+            var file = $('.filess').val();
+            $('.filetext').val(file);
+        });
 
     });
 </script>
