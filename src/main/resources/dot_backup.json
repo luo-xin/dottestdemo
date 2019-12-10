@@ -1,0 +1,28 @@
+{
+  "dot": [
+    {
+      "check_result": false,
+      "dt": "20190805",
+      "name": "APP_重装",
+      "targetUrl": "",
+      "module": "",
+      "currPageUrl": "",
+      "position": "1",
+      "house_id": 23523,
+      "type": 1,
+      "device_name": "iOS"
+    },
+    {
+      "check_result": false,
+      "dt": "20190805",
+      "name": "APP_重装",
+      "targetUrl": "",
+      "module": "",
+      "currPageUrl": "",
+      "position": "2",
+      "house_id": 23523,
+      "type": 2,
+      "device_name": "iOS"
+    }
+  ]
+}

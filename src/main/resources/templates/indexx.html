@@ -6,27 +6,62 @@
     <link rel='stylesheet' href='http://maxcdn.bootstrapcdn.com/bootstrap/3.3.4/css/bootstrap.min.css'>
     <script src="http://ajax.aspnetcdn.com/ajax/jQuery/jquery-1.8.0.js"></script>
 </head>
+<body class="form-bg">
+<div class="container my-form">
+    <div class="row">
+        <div class="col-md-offset-3 col-md-6">
+            <form class="form-horizontal" th:action="@{/dot/check}" th:object="${event}" method="post"
+                  enctype="multipart/form-data">
+                <span class="heading">埋点自动化测试</span>
+                <a href="javascript:void(0);" class="file">选择上传文件
+                    <input type="file" name="file" id="file" onchange="fileSelected()">
+                </a>
+                <div id="info">
+                    <div id="fileName"></div>
+                    <div id="fileSize"></div>
+                    <div id="fileType"></div>
+                </div>
+                <div>
+                    <span id="progress"></span>
+                </div>
+                <div id="result"></div>
+                <div class="form-group">
+                    <button type="submit" class="btn btn-default">查询</button>
+                </div>
+            </form>
+            <br>
+    </div>
+</div>
+</div>
+</body>
 <style>
     .file {
         position: relative;
         display: inline-block;
         background: #D0EEFF;
-        border: 1px solid #99D3F5;
+        /*border: 1px solid #99D3F5;*/
         border-radius: 4px;
-        padding: 4px 12px;
+        padding: 4px 200px;
         overflow: hidden;
         color: #1E88C7;
         text-decoration: none;
         text-indent: 0;
         line-height: 20px;
+        display: block;
+        margin: 0 auto;
+        padding: 0;
+        border: none;
+        outline: none;
+        box-shadow: none;
+        height: 40px;
     }
 
     .file input {
-        /*position: absolute;*/
-        /*font-size: 100px;*/
-        /*right: 0;*/
-        /*top: 0;*/
-        /*opacity: 0;*/
+        position: absolute;
+        font-size: 100px;
+        right: 0;
+        top: 0;
+        opacity: 0;
     }
 
     .file:hover {
@@ -34,21 +69,6 @@
         border-color: #78C3F3;
         color: #004974;
         text-decoration: none;
-    }
-
-    .input-container {
-        display: flex;
-        justify-content: center;
-    }
-
-    .filetext {
-        min-width: 300px;
-        display: block;
-        outline: none;
-    }
-
-    .change_btn {
-        display: block;
     }
 
     .my-form {
@@ -81,12 +101,23 @@
         position: relative;
     }
 
-    .form-horizontal .form-control {
-        background: #f0f0f0;
+    input[type="file"]:focus{
+        background-size: 100% 2px,100% 1px;
+        transition: all .5s;
         border: none;
-        border-radius: 20px;
+        outline: none;
+    }
+
+    .form-horizontal .file-control {
+        /*background: #f0f0f0;*/
+        /*border: none;*/
+        /*border-radius: 20px;*/
+        display: block;
+        margin: 0 auto;
+        padding: 0;
+        border: none;
+        outline: none;
         box-shadow: none;
-        padding: 0 20px 0 45px;
         height: 40px;
         transition: all 0.3s ease 0s;
     }
@@ -178,7 +209,6 @@
 
     .form-horizontal .btn {
         float: right;
-        outline: none;
         font-size: 14px;
         color: #fff;
         background: #00b4ef;
@@ -203,47 +233,57 @@
         }
     }
 </style>
-<body class="form-bg">
-    <div class="container my-form">
-        <div class="row">
-            <div class="col-md-offset-3 col-md-6">
-                <form class="form-horizontal" th:action="@{/dot/check}" th:object="${event}" method="post" enctype="multipart/form-data">
-                    <span class="heading">打点校验</span>
-                    <div class="form-group">
-                        <!--<a href="javascript:void(0);" class="file">-->
-                            <!--<input type="file" name="file"/>-->
-                        <!--</a>-->
-
-                        <div class="input-container">
-                            <input type="file" name="file" class="filess" style="opacity: 0; display: none"/>
-                            <input type="text" class="filetext" />
-                            <button class="change_btn">选择文件</button>
-                        </div>
-                    </div>
-                    <div class="form-group">
-                        <button type="submit" class="btn btn-default">查询</button>
-                    </div>
-                </form>
-            </div>
-        </div>
-    </div>
-</body>
 
 <script>
     $(document).ready(function () {
-
-        $(".change_btn").click(function (e) {
-            e.preventDefault();
-            e.stopPropagation();
-            $(".filess").click();
-        });
-
-        $('.filess').change(function(){
-            var file = $('.filess').val();
-            $('.filetext').val(file);
-        });
-
     });
 </script>
+<script>
+    function fileSelected() {
+        var file = document.getElementById('file').files[0];
+        if (file) {
+            var fileSize = 0;
+            if (file.size > 1024 * 1024)
+                fileSize = (Math.round(file.size * 100 / (1024 * 1024)) / 100).toString() + 'MB';
+            else
+                fileSize = (Math.round(file.size * 100 / 1024) / 100).toString() + 'KB';
+            document.getElementById('fileName').innerHTML = 'Name: ' + file.name;
+            document.getElementById('fileSize').innerHTML = 'Size: ' + fileSize;
+            document.getElementById('fileType').innerHTML = 'Type: ' + file.type;
+        }
+    }
+    function uploadFile() {
+        var fd = new FormData();
+        fd.append("file", document.getElementById('file').files[0]);
+        var xhr = new XMLHttpRequest();
+        xhr.upload.addEventListener("progress", uploadProgress, false);
+        xhr.addEventListener("load", uploadComplete, false);
+        xhr.addEventListener("error", uploadFailed, false);
+        xhr.addEventListener("abort", uploadCanceled, false);
+        xhr.open("POST", "${pageContext.request.contextPath }/upload");//修改成自己的接口
+        xhr.send(fd);
+    }
 
+    function uploadProgress(evt) {
+        if (evt.lengthComputable) {
+            var percent = Math.round(evt.loaded * 100 / evt.total);
+
+            document.getElementById('progress').innerHTML = percent.toFixed(2) + '%';
+            document.getElementById('progress').style.width = percent.toFixed(2) + '%';
+        }
+        else {
+            document.getElementById('progress').innerHTML = 'unable to compute';
+        }
+    }
+    function uploadComplete(evt) {
+        /* 服务器端返回响应时候触发event事件*/
+        document.getElementById('result').innerHTML = evt.target.responseText;
+    }
+    function uploadFailed(evt) {
+        alert("There was an error attempting to upload the file.");
+    }
+    function uploadCanceled(evt) {
+        alert("The upload has been canceled by the user or the browser dropped the connection.");
+    }
+</script>
 </html>
